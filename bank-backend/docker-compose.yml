@@ -1,0 +1,80 @@
+version: '3.8'
+
+
+services:
+    webserver:
+        image: nginx:1.21.6-alpine
+        container_name: webserver
+        restart: unless-stopped
+        ports:
+            - "80:80"
+        volumes:
+            - ./:/var/www
+            - .docker/nginx:/etc/nginx/conf.d
+        networks:
+            app-network:
+        links:
+            - backend
+
+    backend:
+        build:
+            context: .docker
+            dockerfile: Dockerfile
+        container_name: backend
+        volumes:
+            - ./:/var/www
+            - .docker/php.ini:/usr/local/etc/php/conf.d/local.ini
+        networks:
+            app-network:
+        links:
+            - mysql
+
+
+    mysql:
+        image: mysql:8
+        container_name: mysql
+        hostname: mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+            - MYSQL_DATABASE=appdb
+            - MYSQL_USER=user
+            - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+        restart: unless-stopped
+        ports:
+            - 127.0.0.1:3306:3306
+        volumes:
+            - mysql-data:/var/lib/mysql
+            - .docker/mysql/start:/docker-entrypoint-initdb.d
+        secrets:
+            - db_root_password
+            - db_password
+        networks:
+            app-network:
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        links:
+            - mysql
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+            PMA_ARBITRARY: 1
+        restart: always
+        ports:
+            - 8099:80
+        networks:
+            app-network:
+
+secrets:
+    db_root_password:
+        file: .docker/mysql/db_root_password.txt
+    db_password:
+        file: .docker/mysql/db_password.txt
+
+volumes:
+    mysql-data:
+    app-data:
+
+networks:
+    app-network:
