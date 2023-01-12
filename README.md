@@ -27,13 +27,15 @@ http://localhost:9000
 
 Please, this project was made for mobile perpective, so open as device mobile mode.
 
-Common user: 
-username: usertest
-pass: password
 
-Admin user:
-username: admin
-pass: password
+### Users:
+Common user: 
+
+| Username   | Password | Description |
+| :---------- | ------- | :---------------------------------- |
+| `usertest` | `password` | common user |
+| `admin` | `password` | admin user |
+
 
 
 #### Test
